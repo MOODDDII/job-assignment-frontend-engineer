@@ -1,85 +1,108 @@
+import React, { useState } from "react";
+import { useHistory, useRouteMatch } from "react-router-dom";
+import { api } from "./api";
+import { useAuth } from "./AuthContext";
+import Navbar from "./Navbar";
+import Footer from "./Footer";
+
 export default function LoginRegister() {
+  const { user, login } = useAuth();
+  const history = useHistory();
+  const isRegister = useRouteMatch("/register");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [errors, setErrors] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setErrors([]);
+    try {
+      const res = isRegister
+        ? await api.register(username, email, password)
+        : await api.login(email, password);
+      login(res.user);
+      history.push("/");
+    } catch (err: any) {
+      const errs = err.errors
+        ? Object.entries(err.errors).map(([k, v]) => `${k} ${(v as string[]).join(", ")}`)
+        : ["Something went wrong"];
+      setErrors(errs);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <>
-      <nav className="navbar navbar-light">
-        <div className="container">
-          <a className="navbar-brand" href="/#">
-            conduit
-          </a>
-          <ul className="nav navbar-nav pull-xs-right">
-            <li className="nav-item">
-              {/* Add "active" class when you're on that page" */}
-              <a className="nav-link active" href="/#">
-                Home
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="/#/editor">
-                <i className="ion-compose" />
-                &nbsp;New Article
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="/#/settings">
-                <i className="ion-gear-a" />
-                &nbsp;Settings
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="/#/login">
-                Sign in
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="/#/register">
-                Sign up
-              </a>
-            </li>
-          </ul>
-        </div>
-      </nav>
-
+      <Navbar user={user} />
       <div className="auth-page">
         <div className="container page">
           <div className="row">
             <div className="col-md-6 offset-md-3 col-xs-12">
-              <h1 className="text-xs-center">Sign up</h1>
+              <h1 className="text-xs-center">{isRegister ? "Sign up" : "Sign in"}</h1>
               <p className="text-xs-center">
-                <a href="">Have an account?</a>
+                {isRegister ? (
+                  <a href="/#/login">Have an account?</a>
+                ) : (
+                  <a href="/#/register">Need an account?</a>
+                )}
               </p>
 
-              <ul className="error-messages">
-                <li>That email is already taken</li>
-              </ul>
+              {errors.length > 0 && (
+                <ul className="error-messages">
+                  {errors.map((err, i) => <li key={i}>{err}</li>)}
+                </ul>
+              )}
 
-              <form>
+              <form onSubmit={handleSubmit}>
+                {isRegister && (
+                  <fieldset className="form-group">
+                    <input
+                      className="form-control form-control-lg"
+                      type="text"
+                      placeholder="Your Name"
+                      value={username}
+                      onChange={e => setUsername(e.target.value)}
+                      required
+                    />
+                  </fieldset>
+                )}
                 <fieldset className="form-group">
-                  <input className="form-control form-control-lg" type="text" placeholder="Your Name" />
+                  <input
+                    className="form-control form-control-lg"
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    required
+                  />
                 </fieldset>
                 <fieldset className="form-group">
-                  <input className="form-control form-control-lg" type="text" placeholder="Email" />
+                  <input
+                    className="form-control form-control-lg"
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    required
+                  />
                 </fieldset>
-                <fieldset className="form-group">
-                  <input className="form-control form-control-lg" type="password" placeholder="Password" />
-                </fieldset>
-                <button className="btn btn-lg btn-primary pull-xs-right">Sign up</button>
+                <button
+                  className="btn btn-lg btn-primary pull-xs-right"
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? "Loading..." : isRegister ? "Sign up" : "Sign in"}
+                </button>
               </form>
             </div>
           </div>
         </div>
       </div>
-
-      <footer>
-        <div className="container">
-          <a href="/#" className="logo-font">
-            conduit
-          </a>
-          <span className="attribution">
-            An interactive learning project from <a href="https://thinkster.io">Thinkster</a>. Code &amp; design
-            licensed under MIT.
-          </span>
-        </div>
-      </footer>
+      <Footer />
     </>
   );
 }
