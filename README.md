@@ -184,3 +184,18 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
+
+
+All required pages are implemented: Homepage/Article list, Article, Profile, Login and Logout, with favorite/follow state reflected visually.
+ 
+**Intentionally omitted / simplified**, as allowed by the assignment:
+- User registration — not required per spec.
+- Comment section on the Article page — explicitly out of scope.
+- Markdown → HTML conversion for article body — listed as optional, skipped to stay within the time box.
+- Tags on the article list — explicitly optional per spec, not implemented.
+**Bonus, not required by the spec:** a basic Article editor (create) and a Settings page are included, but were not the focus of testing/polish since they're outside the listed pages.
+ 
+**Notable fixes made after the initial skeleton:**
+- `api.ts` now points to the local backend (`http://localhost:3000/api`) instead of a public demo API, and only attaches `Content-Type` on requests that actually have a body, avoiding unnecessary CORS preflights.
+- Author/user avatars fall back to a locally-drawn inline SVG placeholder (no external dependency) whenever the API returns no image or a broken image URL.
+- `public/main.css` is now vendored locally instead of loaded from the original CDN link, which is no longer reachable.
